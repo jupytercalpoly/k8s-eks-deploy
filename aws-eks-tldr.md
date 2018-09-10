@@ -1,6 +1,6 @@
 
 
-# AWS EKS
+# AWS EKS tl;dr
 
 *Amazon Elastic Container Serivce for Kubernetes* 
 
@@ -69,8 +69,6 @@ aws eks describe-cluster --name devel --query cluster.status
 
 Once your query replies "ACTIVE", grab a two things to configure your k8s interaction:
 
-##### <a id='test'></a>
-
 **Endpoint** 
 
 ```
@@ -131,8 +129,6 @@ Check that your cluster is working:
 kubectl get svc
 ```
 
-
-
 ### 3. Launch and Configure EKS worker nodes
 
 Launch your worker nodes using `cloudformation`:
@@ -181,7 +177,7 @@ data:
 
 - **VPC (Virtual private cloud)**: launch AWS resources in a virtual network environment. Select IP addresses, create subnets, and configure route tables and network gatesways. 
 
-- **IAM Role**: IAM role is similar to a user. This is your identity with permissions that determine what the identity can/can't do in AWS. 
+- **IAM Role**: IAM role is similar to a user (but different). This is your identity with permissions that determine what the identity can/can't do in AWS. 
 
   A role does not have standard long-term credentials (password or access keys). Instead, if a user assumes a role, temporary security credentials are created dynamically and provided to the user.
 
