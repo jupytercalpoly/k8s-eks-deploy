@@ -23,6 +23,7 @@ k8s on EKS deployment
   - ImageID: ami-0ea01e1d1dea65b5c
 ```
 $ wget https://amazon-eks.s3-us-west-2.amazonaws.com/1.10.3/2018-07-26/amazon-eks-nodegroup.yaml
+$ aws cloudformation create-stack --stack-name eksTestNodes --template-body file://amazon-eks-nodegroup.yml
 ```
 - Set up aws-iam-authenticator (for OS X)
 ```

@@ -1,0 +1,3 @@
+keycloak:
+  service:
+    type: LoadBalancer
