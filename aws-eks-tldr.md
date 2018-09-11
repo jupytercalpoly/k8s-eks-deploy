@@ -12,7 +12,7 @@ No need to stand up or maintain your own Kubenetes control plane. Simply launch 
 
 EKS is only available on two AWS regions: `us-west-2` or `us-east-1`. Point your user profile to one of these two regions.
 
-**IMPORTANT**: If your using a profile (which I suggest for sandboxing), finish every `aws` command with `--profile <profile-name>` .
+**IMPORTANT**: If your using a profile (which I suggest for sandboxing), finish every `aws` command with `--profile <profile-name>` . Alternatively, set the `AWS_PROFILE=<profile-name>` ENV variable.
 
 #### 1. Create EKS Service Role
 
