@@ -3,12 +3,19 @@ AWSTemplateFormatVersion: '2010-09-09'
 Description: 'EKS Deployment for Jupyter ES'
 
 
+Parameters:
+
+  ClusterName:
+    Type: String
+    Description: Cluster Name
+    Default: JupyterCluster
+
 Resources:
   ControlPlaneSecurityGroup:
     Type: AWS::EC2::SecurityGroup
     Properties:
       GroupDescription: Cluster communication with worker nodes
-      VpcId: !Ref VPC
+      VpcId: !ImportValue VpcId
 
   EKSRole:
     Type: AWS::IAM::Role
@@ -34,6 +41,20 @@ Resources:
       ResourcesVpcConfig: 
         SecurityGroupIds: 
           - !Ref ControlPlaneSecurityGroup 
-        SubnetIds: [ !Ref Subnet01, !Ref Subnet02, !Ref Subnet03 ]
+        #SubnetIds: [ !Ref Subnet01, !Ref Subnet02, !Ref Subnet03 ]
+        SubnetIds: !Split [ ",", !ImportValue SubnetIds ]
       RoleArn: !GetAtt EKSRole.Arn
 
+Outputs:
+
+  ClusterControlPanelSecurityGroup:
+    Description: Security group for the cluster control plane communication with worker nodes
+    Value: !Ref ControlPlaneSecurityGroup
+    Export: 
+      Name: ControlPlaneSecurityGroup
+
+  Cluster: 
+    Description: Cluster Name
+    Value: !Ref EKSCluster
+    Export: 
+      Name: ClusterName

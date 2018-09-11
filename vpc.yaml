@@ -9,6 +9,7 @@ Parameters:
     Default: 10.42.0.0/16
     Description: The CIDR range for the VPC. This should be a valid private (RFC 1918) CIDR range.
 
+  # Odd 3rd Quadrant is private, even is public
   PrivateSubnetABlock:
     Type: String
     Default: 10.42.1.0/24
@@ -79,10 +80,10 @@ Resources:
     Properties: 
       Domain: !Ref VPC
 
-  # NATIPB:
-  #   Type: "AWS::EC2::EIP"
-  #   Properties: 
-  #     Domain: !Ref VPC
+  NATIPB:
+    Type: "AWS::EC2::EIP"
+    Properties: 
+      Domain: !Ref VPC
 
   # NATIPC:
   #   Type: "AWS::EC2::EIP"
@@ -101,17 +102,17 @@ Resources:
       - Key: Name
         Value: NATGatewayA
 
-  # NATGatewayB:
-  #   Type: "AWS::EC2::NatGateway"
-  #   Properties:
-  #     AllocationId:
-  #       Fn::GetAtt:
-  #       - NATIPB
-  #       - AllocationId
-  #     SubnetId: !Ref PublicSubnetB
-  #     Tags:
-  #     - Key: Name
-  #       Value: NATGatewayB
+  NATGatewayB:
+    Type: "AWS::EC2::NatGateway"
+    Properties:
+      AllocationId:
+        Fn::GetAtt:
+        - NATIPB
+        - AllocationId
+      SubnetId: !Ref PublicSubnetB
+      Tags:
+      - Key: Name
+        Value: NATGatewayB
 
   # NATGatewayC:
   #   Type: "AWS::EC2::NatGateway"
@@ -152,6 +153,16 @@ Resources:
         Value: Private Subnet A
       - Key: Network
         Value: Private
+  
+  PrivateRouteTableB:
+    Type: AWS::EC2::RouteTable
+    Properties:
+      VpcId: !Ref VPC
+      Tags:
+      - Key: Name
+        Value: Private Subnet B
+      - Key: Network
+        Value: Private
 
   PrivateRouteA:
     DependsOn: NATGatewayA
@@ -160,6 +171,22 @@ Resources:
       RouteTableId: !Ref PrivateRouteTableA
       DestinationCidrBlock: 0.0.0.0/0
       NatGatewayId: !Ref NATGatewayA
+  
+  PrivateRouteB:
+    DependsOn: NATGatewayB
+    Type: AWS::EC2::Route
+    Properties:
+      RouteTableId: !Ref PrivateRouteTableB
+      DestinationCidrBlock: 0.0.0.0/0
+      NatGatewayId: !Ref NATGatewayB
+  
+  # PrivateRouteC:
+  #   DependsOn: NATGatewayC
+  #   Type: AWS::EC2::Route
+  #   Properties:
+  #     RouteTableId: !Ref PrivateRouteTableC
+  #     DestinationCidrBlock: 0.0.0.0/0
+  #     NatGatewayId: !Ref NATGatewayC
 
   PrivateSubnetA:
     Type: AWS::EC2::Subnet
@@ -179,23 +206,23 @@ Resources:
       - Key: Name
         Value: !Sub "${AWS::StackName}-PrivateSubnetA"
 
-  # PrivateSubnetB:
-  #   Type: AWS::EC2::Subnet
-  #   Metadata:
-  #     Comment: Private Subnet B
-  #   Properties:
-  #     AvailabilityZone:
-  #       Fn::Select:
-  #       - '1'
-  #       - Fn::GetAZs:
-  #           Ref: AWS::Region
-  #     CidrBlock:
-  #       Ref: PrivateSubnetBBlock
-  #     VpcId:
-  #       Ref: VPC
-  #     Tags:
-  #     - Key: Name
-  #       Value: !Sub "${AWS::StackName}-PrivateSubnetB"
+  PrivateSubnetB:
+    Type: AWS::EC2::Subnet
+    Metadata:
+      Comment: Private Subnet B
+    Properties:
+      AvailabilityZone:
+        Fn::Select:
+        - '1'
+        - Fn::GetAZs:
+            Ref: AWS::Region
+      CidrBlock:
+        Ref: PrivateSubnetBBlock
+      VpcId:
+        Ref: VPC
+      Tags:
+      - Key: Name
+        Value: !Sub "${AWS::StackName}-PrivateSubnetB"
 
   # PrivateSubnetC:
   #   Type: AWS::EC2::Subnet
@@ -233,23 +260,23 @@ Resources:
       - Key: Name
         Value: !Sub "${AWS::StackName}-PublicSubnetA"
 
-  # PublicSubnetB:
-  #   Type: AWS::EC2::Subnet
-  #   Metadata:
-  #     Comment: Public Subnet B
-  #   Properties:
-  #     AvailabilityZone:
-  #       Fn::Select:
-  #       - '1'
-  #       - Fn::GetAZs:
-  #           Ref: AWS::Region
-  #     CidrBlock:
-  #       Ref: PublicSubnetBBlock
-  #     VpcId:
-  #       Ref: VPC
-  #     Tags:
-  #     - Key: Name
-  #       Value: !Sub "${AWS::StackName}-PublicSubnetB"
+  PublicSubnetB:
+    Type: AWS::EC2::Subnet
+    Metadata:
+      Comment: Public Subnet B
+    Properties:
+      AvailabilityZone:
+        Fn::Select:
+        - '1'
+        - Fn::GetAZs:
+            Ref: AWS::Region
+      CidrBlock:
+        Ref: PublicSubnetBBlock
+      VpcId:
+        Ref: VPC
+      Tags:
+      - Key: Name
+        Value: !Sub "${AWS::StackName}-PublicSubnetB"
 
   # PublicSubnetC:
   #   Type: AWS::EC2::Subnet
@@ -274,6 +301,18 @@ Resources:
     Properties:
       SubnetId: !Ref PrivateSubnetA
       RouteTableId: !Ref PrivateRouteTableA
+  
+  PrivateSubnetBRouteTableAssociation:
+    Type: AWS::EC2::SubnetRouteTableAssociation
+    Properties:
+      SubnetId: !Ref PrivateSubnetB
+      RouteTableId: !Ref PrivateRouteTableB
+
+  # PrivateSubnetCRouteTableAssociation:
+  #   Type: AWS::EC2::SubnetRouteTableAssociation
+  #   Properties:
+  #     SubnetId: !Ref PrivateSubnetC
+  #     RouteTableId: !Ref PrivateRouteTableC
 
   PublicSubnetARouteTableAssociation:
     Type: AWS::EC2::SubnetRouteTableAssociation
@@ -281,17 +320,25 @@ Resources:
       SubnetId: !Ref PublicSubnetA
       RouteTableId: !Ref PublicRouteTable
 
-  # Subnet03RouteTableAssociation:
+  PublicSubnetBRouteTableAssociation:
+    Type: AWS::EC2::SubnetRouteTableAssociation
+    Properties:
+      SubnetId: !Ref PublicSubnetB
+      RouteTableId: !Ref PublicRouteTable
+
+  # PublicSubnetCRouteTableAssociation:
   #   Type: AWS::EC2::SubnetRouteTableAssociation
   #   Properties:
-  #     SubnetId: !Ref Subnet03
-  #     RouteTableId: !Ref RouteTable
+  #     SubnetId: !Ref PublicSubnetC
+  #     RouteTableId: !Ref PublicRouteTable
 
 Outputs:
 
   SubnetIds:
     Description: All subnets in the VPC
-    Value: !Join [ ",", [ !Ref PublicSubnetA, !Ref PrivateSubnetA ] ]
+    Value: !Join [ ",", [ !Ref PrivateSubnetA, !Ref PrivateSubnetB ] ]
+    Export:
+      Name: SubnetIds
 
   # SecurityGroups:
   #   Description: Security group for the cluster control plane communication with worker nodes
@@ -300,3 +347,5 @@ Outputs:
   VpcId:
     Description: The VPC Id
     Value: !Ref VPC
+    Export:
+      Name: VpcId
