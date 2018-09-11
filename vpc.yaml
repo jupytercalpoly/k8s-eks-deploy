@@ -159,7 +159,7 @@ Resources:
     Properties:
       RouteTableId: !Ref PrivateRouteTableA
       DestinationCidrBlock: 0.0.0.0/0
-      GatewayId: !Ref NATGatewayA
+      NatGatewayId: !Ref NATGatewayA
 
   PrivateSubnetA:
     Type: AWS::EC2::Subnet
