@@ -1,6 +1,6 @@
 ---
 AWSTemplateFormatVersion: '2010-09-09'
-Description: 'Amazon EKS Deployment for Jupyter ES'
+Description: 'VPC Deployment for Jupyter ES'
 
 Parameters:
 
@@ -154,7 +154,7 @@ Resources:
         Value: Private
 
   PrivateRouteA:
-    DependsOn: VPCGatewayAttachment
+    DependsOn: NATGatewayA
     Type: AWS::EC2::Route
     Properties:
       RouteTableId: !Ref PrivateRouteTableA
