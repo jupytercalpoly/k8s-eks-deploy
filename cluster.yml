@@ -37,7 +37,7 @@ Resources:
   EKSCluster:
     Type: "AWS::EKS::Cluster"
     Properties:
-      Name: CalpolyDataScience
+      Name: JupyterHubES
       ResourcesVpcConfig: 
         SecurityGroupIds: 
           - !Ref ControlPlaneSecurityGroup 
@@ -51,7 +51,7 @@ Outputs:
     Description: Security group for the cluster control plane communication with worker nodes
     Value: !Ref ControlPlaneSecurityGroup
     Export: 
-      Name: ControlPlaneSecurityGroup
+      Name: ClusterControlPlaneSecurityGroup
 
   Cluster: 
     Description: Cluster Name
