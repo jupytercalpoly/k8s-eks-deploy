@@ -22,8 +22,6 @@ import subprocess
 
 # Deploy Management Plane
 
-## Install Helm/Tiller
-
 ## Add IAM admin users
 
 # Deploy Worker Nodes (minions)
@@ -61,6 +59,9 @@ with open('aws-auth-cm.yaml', 'w') as ofile:
     ofile.writelines(outputText)
 
 kubectl('apply', '-f', 'aws-auth-cm.yaml')
+
+## Storage Class
+kubectl('apply', '-f', 'storageclass.yaml')
 
 ## Install Helm/Tiller
 # NOT idempotent

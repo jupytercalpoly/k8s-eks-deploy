@@ -4,3 +4,4 @@ keycloak:
   password: tohellwithourorders
   persistence:
     deployPostgres: true
+    dbVendor: postgres
