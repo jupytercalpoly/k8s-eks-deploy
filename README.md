@@ -3,6 +3,11 @@ k8s on EKS deployment
 
 # On Boarding
 
+# Get the `aws-iam-authenticator`
+```
+curl -o aws-iam-authenticator https://amazon-eks.s3-us-west-2.amazonaws.com/1.10.3/2018-07-26/bin/darwin/amd64/aws-iam-authenticator
+```
+
 ## Accounts and Roles
 
 - Root Account
