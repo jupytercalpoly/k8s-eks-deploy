@@ -1,0 +1,34 @@
+[
+    {
+        "ParameterKey": "KeyName",
+        "ParameterValue": ""
+    },
+    {
+      "ParameterKey": "NodeImageId",
+      "ParameterValue": "ami-0a54c984b9f908c81"
+    },
+    {
+      "ParameterKey": "ClusterName",
+      "ParameterValue": "JupyterES"
+    },
+    {
+      "ParameterKey": "BootstrapArguments",
+      "ParameterValue": "--kubelet-extra-args='--system-reserved=cpu=100m,memory=100Mi'"
+    },
+    {
+      "ParameterKey": "NodeGroupName",
+      "ParameterValue": "string"
+    },
+    {
+      "ParameterKey": "ClusterControlPlaneSecurityGroup",
+      "ParameterValue": "string"
+    },
+    {
+      "ParameterKey": "VpcId",
+      "ParameterValue": "string"
+    },
+    {
+      "ParameterKey": "Subnets",
+      "ParameterValue": "string"
+    }
+  ]
