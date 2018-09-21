@@ -21,6 +21,7 @@ CLUSTER_NAME='JupyterES'
 ROLE_TEMPLATE_URL = "https://amazon-eks.s3-us-west-2.amazonaws.com/cloudformation/2018-08-30/amazon-eks-service-role.yaml"
 VPC_TEMPLATE_URL = "https://amazon-eks.s3-us-west-2.amazonaws.com/cloudformation/2018-08-30/amazon-eks-vpc-sample.yaml"
 NODE_TEMPLATE_URL = "https://amazon-eks.s3-us-west-2.amazonaws.com/cloudformation/2018-08-30/amazon-eks-nodegroup.yaml"
+SPOT_TEMPLATE_URL = "https://raw.githubusercontent.com/townsenddw/k8s-eks-deploy/master/spot-nodes.yaml"
 
 # Utilities
 
@@ -165,13 +166,45 @@ except:
     waiter.wait(StackName=stack.name)
 finally:
     NODE_ARN = getOutput(stack, 'NodeInstanceRole')
-
+    NODE_INSTANCE_PROFILE = stack.Resource('NodeInstanceProfile').physical_resource_id
+    NODE_INSTANCE_ROLE = stack.Resource('NodeInstanceRole').physical_resource_id
+    NODE_SECURITY_GROUP = stack.Resource('NodeSecurityGroup').physical_resource_id
 
 # Deploy spot instances
-
-
-
-
+try:
+    stack = cf.create_stack(
+        StackName=f'{CLUSTER_NAME}-spot-nodes',
+        TemplateBody=open('spot-nodes.yaml').read(),
+        Parameters=[
+            {
+                "ParameterKey": "ClusterName",
+                "ParameterValue": CLUSTER_NAME
+            },
+            {
+                "ParameterKey": "Subnets",
+                "ParameterValue": SUBNET_IDS
+            },
+            {
+                "ParameterKey": "NodeInstanceProfile",
+                "ParameterValue": NODE_INSTANCE_PROFILE
+            },
+            {
+                "ParameterKey": "NodeInstanceRole",
+                "ParameterValue": NODE_INSTANCE_ROLE
+            },
+            {
+                "ParameterKey": "NodeSecurityGroup",
+                "ParameterValue": NODE_SECURITY_GROUP
+            },
+        ],
+        # Capabilities=[
+        #     'CAPABILITY_IAM'
+        # ]
+    )
+    waiter.wait(StackName=stack.name)
+except:
+    stack = cf.Stack(f'{CLUSTER_NAME}-spot-nodes')
+    waiter.wait(StackName=stack.name)
 
 writeKubeconfig()
 
