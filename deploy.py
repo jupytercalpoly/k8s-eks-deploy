@@ -128,6 +128,11 @@ finally:
     CA_CERT = response['cluster']['certificateAuthority']['data']
 
 # Deploy AWS Default Worker Nodes (OnDemand minions)
+    # TODO: add system reserved specification
+    # {
+    #   "ParameterKey": "BootstrapArguments",
+    #   "ParameterValue": "--kubelet-extra-args --system-reserved cpu=500m,memory=500Mi"
+    # },
 try:
     stack = cf.create_stack(
         StackName=f'{CLUSTER_NAME}-ondemand-nodes',
@@ -160,6 +165,13 @@ except:
     waiter.wait(StackName=stack.name)
 finally:
     NODE_ARN = getOutput(stack, 'NodeInstanceRole')
+
+
+# Deploy spot instances
+
+
+
+
 
 writeKubeconfig()
 
