@@ -1,16 +1,24 @@
 [
     {
-        "ParameterKey": "KeyName",
-        "ParameterValue": "townsenddw"
+      "ParameterKey": "KeyName",
+      "ParameterValue": "townsenddw"
+    },
+    {
+      "ParameterKey": "NodeAutoScalingGroupMaxSize",
+      "ParameterValue": 1
+    },
+    {
+      "ParameterKey": "NodeVolumerSize",
+      "ParameterValue": 100
     },
     {
       "ParameterKey": "NodeImageId",
       "ParameterValue": "ami-0a54c984b9f908c81"
     },
-    {
-      "ParameterKey": "BootstrapArguments",
-      "ParameterValue": "--kubelet-extra-args='--system-reserved=cpu=100m,memory=100Mi'"
-    },
+    // {
+    //   "ParameterKey": "BootstrapArguments",
+    //   "ParameterValue": "--kubelet-extra-args --system-reserved cpu=500m,memory=500Mi"
+    // },
     {
       "ParameterKey": "NodeGroupName",
       "ParameterValue": "JupyerES OnDemand Nodes"
