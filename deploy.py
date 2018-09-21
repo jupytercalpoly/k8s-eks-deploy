@@ -1,26 +1,106 @@
 #!/bin/python3
 '''
 Only run this after deploying cloud formation templates
+Using minimal input this script should bootsrap an EKS cluster on AWS
 '''
 
-
-# PreReqs
+# Imports
 import boto3
 import jinja2
+import json
 import subprocess
+from pathlib import Path
 
-## Using minimal input this script should bootsrap an EKS cluster on AWS
+# Exceptions
+# from botocore.errorfactory import AlreadyExistsException
 
-## Check for existing kubeconfig(s)
+# TODO: "Arguments"
+CLUSTER_NAME='JupyterES'
 
-## Check for existing awscli credentials
+# Constants
+ROLE_TEMPLATE_URL = "https://amazon-eks.s3-us-west-2.amazonaws.com/cloudformation/2018-08-30/amazon-eks-service-role.yaml"
+VPC_TEMPLATE_URL = "https://amazon-eks.s3-us-west-2.amazonaws.com/cloudformation/2018-08-30/amazon-eks-vpc-sample.yaml"
 
-## Check for aws-iam-authenticator
+# utils
+def YAML(file_name):
+    with open(file_name, 'r') as stream:
+        template_body = yaml.load(stream)
+    return template_body
 
+def getOutput(stack, outputKey):
+    for output in stack.outputs:
+        if output['OutputKey'] == outputKey:
+            return output['OutputValue']
+
+client = boto3.client('cloudformation')
+waiter = client.get_waiter('stack_create_complete')
+cf = boto3.resource('cloudformation')
+# TODO: Check for existing kubeconfig(s)
+
+# TODO: Check for aws-cli, aws-iam-authenticator, 
+
+# TODO: Download current CloudFormation templates
+
+# Deploy Role
+try:
+    stack = cf.create_stack(
+        StackName=f'{CLUSTER_NAME}-role',
+        TemplateURL=ROLE_TEMPLATE_URL,
+        Capabilities=[
+            'CAPABILITY_NAMED_IAM',
+        ]
+    )
+    waiter.wait(StackName=stack.name)
+except:
+    stack = cf.Stack(f'{CLUSTER_NAME}-role')
+finally:
+    CLUSTER_ROLE = getOutput(stack, 'RoleArn')
 
 # Deploy VPC
+try:
+    stack = cf.create_stack(
+        StackName=f'{CLUSTER_NAME}-vpc',
+        TemplateURL=VPC_TEMPLATE_URL,
+        Parameters=json.loads(open('params/vpc.json', 'rb').read())
+    )
+    waiter.wait(StackName=stack.name)
+except:
+    stack = cf.Stack(f'{CLUSTER_NAME}-vpc')
+finally:
+    SECURITY_GROUPS = getOutput(stack, 'SecurityGroups')
+    SUBNET_IDS = getOutput(stack, 'SubnetIds')
 
-# Deploy Management Plane
+# Deploy Cluster
+try:
+    stack = cf.create_stack(
+        StackName=f'{CLUSTER_NAME}-cluster',
+        TemplateBody=open('cluster.yml').read(),
+        Parameters=[
+            {
+                "ParameterKey": "ClusterName",
+                "ParameterValue": CLUSTER_NAME
+            },
+            {
+                "ParameterKey": "ControlPlaneSecurityGroup",
+                "ParameterValue": SECURITY_GROUPS
+            },
+            {
+                "ParameterKey": "Subnets",
+                "ParameterValue": SUBNET_IDS
+            },
+        ]
+    )
+    waiter.wait(StackName=stack.name)
+except:
+    stack = cf.Stack(f'{CLUSTER_NAME}-cluster')
+    waiter.wait(StackName=stack.name)
+finally:
+    client = boto3.client('eks')
+    response = client.describe_cluster(
+        name=CLUSTER_NAME
+    )
+    ENDPOINT_URL = response['cluster']['endpoint']
+    CA_CERT = response['cluster']['certificateAuthority']['data']
 
 ## Add IAM admin users
 
@@ -34,50 +114,73 @@ import subprocess
 #     TemplateURL=template_body,
 #     Capabilities=['CAPABILITY_NAMED_IAM']
 # )
-# print(response)
+# # print(response)
 
-## Get ARN of instance role of worker nodes and apply to cluster
-# This is just a hack now, but it works assuming your awscli 
-# and kubectl are configureed correctly
-# Also, this section is idempotent
-cloudformation = boto3.resource('cloudformation')
-stack = cloudformation.Stack('prod-worker-nodes')
-worker_node_arn = stack.outputs[0]['OutputValue']
-print(worker_node_arn)
+# ## Get ARN of instance role of worker nodes and apply to cluster
+# # This is just a hack now, but it works assuming your awscli 
+# # and kubectl are configureed correctly
+# # Also, this section is idempotent
+# cloudformation = boto3.resource('cloudformation')
+# stack = cloudformation.Stack('prod-worker-nodes')
+# worker_node_arn = stack.outputs[0]['OutputValue']
+# print(worker_node_arn)
 
-def kubectl(*args, **kwargs):
-    #logging.info("Executing kubectl", ' '.join(args))
-    return subprocess.check_call(['kubectl'] + list(args), **kwargs)
+# # Generate kubeconfig file
+# def writeKubeconfig():
+#     """Creates kubeconfig file in users home with CLUSTER_NAME appended"""
+#     templateLoader = jinja2.FileSystemLoader(searchpath="./templates")
+#     templateEnv = jinja2.Environment(loader=templateLoader)
+#     TEMPLATE_FILE = "kubeconfig.yaml.template"
+#     template = templateEnv.get_template(TEMPLATE_FILE)
+#     outputText = template.render(
+#         endpoint_url=ENDPOINT_URL,
+#         ca_cert=CA_CERT,
+#         cluster_name=CLUSTER_NAME)
+#     with open(f'{Path.home()}/.kube/kubeconfig-{CLUSTER_NAME}', 'w') as ofile:
+#         ofile.writelines(outputText)
 
-templateLoader = jinja2.FileSystemLoader(searchpath="./templates")
-templateEnv = jinja2.Environment(loader=templateLoader)
-TEMPLATE_FILE = "aws-auth-cm.yaml.template"
-template = templateEnv.get_template(TEMPLATE_FILE)
-outputText = template.render(arn=worker_node_arn)
+# def kubectl(*args, **kwargs):
+#     #logging.info("Executing kubectl", ' '.join(args))
+#     return subprocess.check_call(['kubectl'] + list(args), **kwargs)
 
-with open('aws-auth-cm.yaml', 'w') as ofile:
-    ofile.writelines(outputText)
+# def helm(*args, **kwargs):
+#     # logging.info("Executing helm", ' '.join(args))
+#     return subprocess.check_call(['helm'] + list(args), **kwargs)
 
-kubectl('apply', '-f', 'aws-auth-cm.yaml')
+# templateLoader = jinja2.FileSystemLoader(searchpath="./templates")
+# templateEnv = jinja2.Environment(loader=templateLoader)
+# TEMPLATE_FILE = "aws-auth-cm.yaml.template"
+# template = templateEnv.get_template(TEMPLATE_FILE)
+# outputText = template.render(arn=worker_node_arn)
 
-## Storage Class
-kubectl('apply', '-f', 'storageclass.yaml')
+# with open('aws-auth-cm.yaml', 'w') as ofile:
+#     ofile.writelines(outputText)
 
-## Install Helm/Tiller
-# NOT idempotent
-# kubectl('--namespace', 'kube-system', 'create', 'serviceaccount', 'tiller')
-# kubectl('create', 'clusterrolebinding', 'tiller', '--clusterrole=cluster-admin', '--serviceaccount=kube-system:tiller')
+# kubectl('apply', '-f', 'aws-auth-cm.yaml')
 
-def helm(*args, **kwargs):
-    # logging.info("Executing helm", ' '.join(args))
-    return subprocess.check_call(['helm'] + list(args), **kwargs)
+# ## Storage Class
+# try:
+#   kubectl('delete', 'storageclass', 'gp2')
+# finally:
+#   kubectl('apply', '-f', 'storageclass.yaml')
 
-helm('init', '--service-account', 'tiller')
+# ## Install Tiller serviceaccount and clusterrolbinding
+# # Idempotent
+# try:
+#     kubectl('-n','kube-system','get','serviceaccount','tiller')
+# except:
+#     kubectl('--namespace', 'kube-system', 'create', 'serviceaccount', 'tiller')
 
-## Congfigure Clients
+# try:
+#     kubectl('get', 'clusterrolebinding', 'tiller')
+# except:
+#     kubectl('create', 'clusterrolebinding', 'tiller', '--clusterrole=cluster-admin', '--serviceaccount=kube-system:tiller')
 
-# Add kubeconfig file
+# # Inititalize Helm/Tiller for the cluster
+# helm('init', '--service-account', 'tiller')
 
-# If needed adjust aws config
+# # TODO: Set KUBECONFIG env variable
+# # perhaps append to .bash_profile?
+
 
 

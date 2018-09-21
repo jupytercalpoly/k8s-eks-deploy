@@ -8,31 +8,17 @@ Parameters:
   ClusterName:
     Type: String
     Description: Cluster Name
-    Default: JupyterCluster
-
-Resources:
+    Default: JupyterES
+  
   ControlPlaneSecurityGroup:
     Type: AWS::EC2::SecurityGroup
-    Properties:
-      GroupDescription: Cluster communication with worker nodes
-      VpcId: !ImportValue VpcId
+    Description: Control Plane Security Group
 
-  EKSRole:
-    Type: AWS::IAM::Role
-    Properties:
-      RoleName: eksServiceRole
-      AssumeRolePolicyDocument:
-          Version: "2012-10-17"
-          Statement:
-            - Effect: "Allow"
-              Principal:
-                Service:
-                  - "eks.amazonaws.com"
-              Action:
-                - "sts:AssumeRole"
-      ManagedPolicyArns:
-        - arn:aws:iam::aws:policy/AmazonEKSClusterPolicy
-        - arn:aws:iam::aws:policy/AmazonEKSServicePolicy
+  Subnets:
+    Description: The subnets where workers can be created.
+    Type: List<AWS::EC2::Subnet::Id>
+
+Resources:
 
   EKSCluster:
     Type: "AWS::EKS::Cluster"
@@ -42,8 +28,8 @@ Resources:
         SecurityGroupIds: 
           - !Ref ControlPlaneSecurityGroup 
         #SubnetIds: [ !Ref Subnet01, !Ref Subnet02, !Ref Subnet03 ]
-        SubnetIds: !Split [ ",", !ImportValue SubnetIds ]
-      RoleArn: !GetAtt EKSRole.Arn
+        SubnetIds: !Ref Subnets
+      RoleArn: !ImportValue JupyterES-role-RoleArn
 
 Outputs:
 
