@@ -1,4 +1,4 @@
-#!/bin/python3
+#!/bin/python
 '''
 Only run this after deploying cloud formation templates
 Using minimal input this script should bootsrap an EKS cluster on AWS
@@ -102,6 +102,7 @@ finally:
     ENDPOINT_URL = response['cluster']['endpoint']
     CA_CERT = response['cluster']['certificateAuthority']['data']
 
+print(ENDPOINT_URL, CA_CERT)
 ## Add IAM admin users
 
 # Deploy Worker Nodes (minions)

@@ -11,7 +11,7 @@ Parameters:
     Default: JupyterES
   
   ControlPlaneSecurityGroup:
-    Type: AWS::EC2::SecurityGroup
+    Type: String
     Description: Control Plane Security Group
 
   Subnets:
@@ -23,7 +23,7 @@ Resources:
   EKSCluster:
     Type: "AWS::EKS::Cluster"
     Properties:
-      Name: JupyterHubES
+      Name: !Ref ClusterName
       ResourcesVpcConfig: 
         SecurityGroupIds: 
           - !Ref ControlPlaneSecurityGroup 
