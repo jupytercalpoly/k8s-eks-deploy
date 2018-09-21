@@ -197,9 +197,6 @@ try:
                 "ParameterValue": NODE_SECURITY_GROUP
             },
         ],
-        # Capabilities=[
-        #     'CAPABILITY_IAM'
-        # ]
     )
     waiter.wait(StackName=stack.name)
 except:
