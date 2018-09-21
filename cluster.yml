@@ -36,11 +36,11 @@ Outputs:
   ClusterControlPanelSecurityGroup:
     Description: Security group for the cluster control plane communication with worker nodes
     Value: !Ref ControlPlaneSecurityGroup
-    Export: 
-      Name: ClusterControlPlaneSecurityGroup
+    # Export: 
+    #   Name: ClusterControlPlaneSecurityGroup
 
   Cluster: 
     Description: Cluster Name
     Value: !Ref EKSCluster
-    Export: 
-      Name: ClusterName
+    # Export: 
+    #   Name: ClusterName
