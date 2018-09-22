@@ -205,17 +205,16 @@ except:
 
 writeKubeconfig()
 
-## Apply ARN of instance role of worker nodes and apply to cluster
-templateLoader = jinja2.FileSystemLoader(searchpath="./templates")
-templateEnv = jinja2.Environment(loader=templateLoader)
-TEMPLATE_FILE = "aws-auth-cm.yaml.template"
-template = templateEnv.get_template(TEMPLATE_FILE)
-outputText = template.render(arn=NODE_ARN)
-
-# TODO: Add all IAM admin users
-
-with open('aws-auth-cm.yaml', 'w') as ofile:
-    ofile.writelines(outputText)
+def writeAuthCM():
+    ## Apply ARN of instance role of worker nodes and apply to cluster
+    templateLoader = jinja2.FileSystemLoader(searchpath="./templates")
+    templateEnv = jinja2.Environment(loader=templateLoader)
+    TEMPLATE_FILE = "aws-auth-cm.yaml.template"
+    template = templateEnv.get_template(TEMPLATE_FILE)
+    outputText = template.render(arn=NODE_ARN, users=ADMINS)
+    print(outputText)
+    # with open('aws-auth-cm.yaml', 'w') as ofile:
+    #     ofile.writelines(outputText)
 
 kubectl('apply', '-f', 'aws-auth-cm.yaml')
 

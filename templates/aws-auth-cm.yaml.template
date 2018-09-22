@@ -10,12 +10,10 @@ data:
       groups:
         - system:bootstrappers
         - system:nodes
-    - rolearn: arn:aws:iam::035823817457:role/eksServiceRole
-      username: eksAdmin
+  mapUsers: |
+    {%- for user in users %}
+    - userarn: {{ user.Arn }}
+      username: {{ user.UserName }}
       groups:
         - system:masters
-  # mapUsers: |
-  #   - userarn: arn:aws:iam::035823817457:user/townsenddw
-  #     username: townsenddw
-  #     groups:
-  #       - system:masters
+    {%- endfor %}
