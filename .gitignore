@@ -105,3 +105,4 @@ venv.bak/
 
 # aws related
 service-eks
+aws-auth-cm.yaml
