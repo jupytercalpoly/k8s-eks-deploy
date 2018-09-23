@@ -28,6 +28,7 @@ SPOT_TEMPLATE_URL = "https://raw.githubusercontent.com/townsenddw/k8s-eks-deploy
 client = boto3.client('cloudformation')
 waiter = client.get_waiter('stack_create_complete')
 cf = boto3.resource('cloudformation')
+iam = boto3.client('iam')
 
 def writeKubeconfig():
     """Creates kubeconfig file in users home with CLUSTER_NAME appended"""
@@ -40,6 +41,16 @@ def writeKubeconfig():
         ca_cert=CA_CERT,
         cluster_name=CLUSTER_NAME)
     with open(f'{Path.home()}/.kube/kubeconfig-{CLUSTER_NAME}', 'w') as ofile:
+        ofile.writelines(outputText)
+
+def writeAuthCM():
+    ## Apply ARN of instance role of worker nodes and apply to cluster
+    templateLoader = jinja2.FileSystemLoader(searchpath="./templates")
+    templateEnv = jinja2.Environment(loader=templateLoader)
+    TEMPLATE_FILE = "aws-auth-cm.yaml.template"
+    template = templateEnv.get_template(TEMPLATE_FILE)
+    outputText = template.render(arn=NODE_ARN, users=ADMINS)
+    with open('aws-auth-cm.yaml', 'w') as ofile:
         ofile.writelines(outputText)
 
 def kubectl(*args, **kwargs):
@@ -205,17 +216,9 @@ except:
 
 writeKubeconfig()
 
-def writeAuthCM():
-    ## Apply ARN of instance role of worker nodes and apply to cluster
-    templateLoader = jinja2.FileSystemLoader(searchpath="./templates")
-    templateEnv = jinja2.Environment(loader=templateLoader)
-    TEMPLATE_FILE = "aws-auth-cm.yaml.template"
-    template = templateEnv.get_template(TEMPLATE_FILE)
-    outputText = template.render(arn=NODE_ARN, users=ADMINS)
-    print(outputText)
-    # with open('aws-auth-cm.yaml', 'w') as ofile:
-    #     ofile.writelines(outputText)
-
+## Generate aws-auth-cm.yaml and apply to cluster
+ADMINS = iam.get_group(GroupName='admin')['Users']
+writeAuthCM()
 kubectl('apply', '-f', 'aws-auth-cm.yaml')
 
 ## Storage Class

@@ -5,13 +5,21 @@ metadata:
   namespace: kube-system
 data:
   mapRoles: |
-    - rolearn: lskdfjasd
+    - rolearn: arn:aws:iam::035823817457:role/JupyterES-ondemand-nodes-NodeInstanceRole-SMEMSJ51DRFV
       username: system:node:{{EC2PrivateDNSName}}
       groups:
         - system:bootstrappers
         - system:nodes
-    - rolearn: arn:aws:iam::035823817457:role/eksServiceRole
-      username: eksAdmin
+  mapUsers: |
+    - userarn: arn:aws:iam::035823817457:user/townsenddw
+      username: townsenddw
       groups:
         - system:masters
-    
+    - userarn: arn:aws:iam::035823817457:user/zsailer
+      username: zsailer
+      groups:
+        - system:masters
+    - userarn: arn:aws:iam::035823817457:user/ellisonbg
+      username: ellisonbg
+      groups:
+        - system:masters
