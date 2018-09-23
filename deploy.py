@@ -214,6 +214,31 @@ except:
     stack = cf.Stack(f'{CLUSTER_NAME}-spot-nodes')
     waiter.wait(StackName=stack.name)
 
+# Deploy utilities stack
+try:
+    stack = cf.create_stack(
+        StackName=f'{CLUSTER_NAME}-utilities',
+        TemplateBody=open('utilities.yaml').read(),
+        Parameters=[
+            {
+                "ParameterKey": "Subnets",
+                "ParameterValue":SUBNET_IDS
+            },
+            {
+                "ParameterKey": "NodeSecurityGroup",
+                "ParameterValue": NODE_SECURITY_GROUP
+            }
+        ]       
+    )
+    waiter.wait(StackName=stack.name)
+except:
+    stack = cf.Stack(f'{CLUSTER_NAME}-utilities')
+    waiter.wait(StackName=stack.name)
+finally:
+    EFS_ID = getOutput(stack, 'efsId')
+
+
+## Generate and write `kubeconfig`
 writeKubeconfig()
 
 ## Generate aws-auth-cm.yaml and apply to cluster
@@ -248,5 +273,19 @@ helm('init', '--service-account', 'tiller')
 # # TODO: Set KUBECONFIG env variable
 # # perhaps append to .bash_profile?
 
+# TODO: Set up efs-provisioner
+# https://github.com/kubernetes-incubator/external-storage/tree/master/aws/efs
 
-
+def deployEFSPRovisioner():
+    ## Apply fs-id, region, and clusterName to efs-provisioner
+    templateLoader = jinja2.FileSystemLoader(searchpath="./templates")
+    templateEnv = jinja2.Environment(loader=templateLoader)
+    TEMPLATE_FILE = "efs-provisioner.yaml.template"
+    template = templateEnv.get_template(TEMPLATE_FILE)
+    outputText = template.render(clusterName=CLUSTER_NAME,
+                                 region=boto3.Session().region_name,
+                                 efsSystemId=EFS_ID)
+    with open('efs-provisioner.yaml','w') as ofile:
+        ofile.writelines(outputText)
+    kubectl('-n', 'kube-system','apply', '-f', 'efs-provisioner.yaml')
+deployEFSPRovisioner()
