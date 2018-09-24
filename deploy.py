@@ -235,7 +235,7 @@ except:
     stack = cf.Stack(f'{CLUSTER_NAME}-utilities')
     waiter.wait(StackName=stack.name)
 finally:
-    EFS_ID = getOutput(stack, 'efsId')
+    EFS_ID = getOutput(stack, 'EfsId')
 
 
 ## Generate and write `kubeconfig`
@@ -276,8 +276,8 @@ helm('init', '--service-account', 'tiller')
 # TODO: Set up efs-provisioner
 # https://github.com/kubernetes-incubator/external-storage/tree/master/aws/efs
 
-def deployEFSPRovisioner():
-    ## Apply fs-id, region, and clusterName to efs-provisioner
+def deployEFSProvisioner():
+    ## Apply efs-id, region, and clusterName to efs-provisioner
     templateLoader = jinja2.FileSystemLoader(searchpath="./templates")
     templateEnv = jinja2.Environment(loader=templateLoader)
     TEMPLATE_FILE = "efs-provisioner.yaml.template"
@@ -287,5 +287,6 @@ def deployEFSPRovisioner():
                                  efsSystemId=EFS_ID)
     with open('efs-provisioner.yaml','w') as ofile:
         ofile.writelines(outputText)
-    kubectl('-n', 'kube-system','apply', '-f', 'efs-provisioner.yaml')
-deployEFSPRovisioner()
+    kubectl('-n', 'utilities','apply', '-f', 'efs-provisioner.yaml')
+
+deployEFSProvisioner()

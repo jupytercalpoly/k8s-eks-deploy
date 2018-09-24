@@ -6,7 +6,7 @@ metadata:
 data:
   file.system.id: {{ efsSystemId }}
   aws.region: {{ region }}
-  provisioner.name: {{ clusterName }}/aws-efs
+  provisioner.name: jupyter.sh/aws-efs
 ---
 kind: Deployment
 apiVersion: extensions/v1beta1
@@ -46,14 +46,14 @@ spec:
       volumes:
         - name: pv-volume
           nfs:
-            server: yourEFSsystemID.efs.yourEFSregion.amazonaws.com
+            server: {{ efsSystemId }}.efs.{{ region }}.amazonaws.com
             path: /
 ---
 kind: StorageClass
 apiVersion: storage.k8s.io/v1
 metadata:
   name: aws-efs
-provisioner: example.com/aws-efs
+provisioner: jupyter.sh/aws-efs
 ---
 kind: PersistentVolumeClaim
 apiVersion: v1
