@@ -274,6 +274,7 @@ helm('init', '--service-account', 'tiller')
 # # perhaps append to .bash_profile?
 
 # TODO: Set up efs-provisioner
+# Use Helm to do this instead of the below
 # https://github.com/kubernetes-incubator/external-storage/tree/master/aws/efs
 
 def deployEFSProvisioner():
@@ -289,4 +290,4 @@ def deployEFSProvisioner():
         ofile.writelines(outputText)
     kubectl('-n', 'utilities','apply', '-f', 'efs-provisioner.yaml')
 
-deployEFSProvisioner()
+#deployEFSProvisioner()
