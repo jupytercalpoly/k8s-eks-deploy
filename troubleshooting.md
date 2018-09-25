@@ -1,6 +1,6 @@
 # Troubleshooting JupyterHub Deployments
 
-## Useful `kubectl` commands
+## Useful `kubectl` commands:
 
 ```bash
 $ # Shows all notebook server pods on the cluster
