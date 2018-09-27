@@ -21,6 +21,7 @@
     - utils/cluster-autoscaler
     - utils/overprovisioning
     - utils/heapster
+        - So, the above is deprecated.. I deployed metrics-server now and figuring out how that works
     - utils/grafana
 
  - Optimize image pulls somehow to speed up the node launch time
