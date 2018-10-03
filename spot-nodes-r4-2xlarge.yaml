@@ -166,6 +166,8 @@ Resources:
           !Sub |
             #!/bin/bash
             set -o xtrace
+            yum update -y
+            yum install amazon-efs-utils -y
             /etc/eks/bootstrap.sh ${ClusterName} ${BootstrapArguments}
             /opt/aws/bin/cfn-signal --exit-code $? \
                      --stack  ${AWS::StackName} \
