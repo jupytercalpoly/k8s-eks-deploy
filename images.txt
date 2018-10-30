@@ -7,4 +7,3 @@ calpolydatascience/datascience-notebook:nbzip2
 calpolydatascience/rstudio-notebook:3.5
 calpolydatascience/rstudio-notebook:0.1
 calpolydatascience/stat350-notebook:f335660
-
