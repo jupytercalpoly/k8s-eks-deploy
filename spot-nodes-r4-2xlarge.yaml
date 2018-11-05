@@ -79,12 +79,12 @@ Parameters:
   NodeAutoScalingGroupMinSize:
     Type: Number
     Description: Minimum size of Node Group ASG.
-    Default: 2
+    Default: 5
 
   NodeAutoScalingGroupMaxSize:
     Type: Number
     Description: Maximum size of Node Group ASG.
-    Default: 3
+    Default: 5
 
   NodeVolumeSize:
     Type: Number
@@ -141,7 +141,7 @@ Resources:
         PropagateAtLaunch: 'true'
     UpdatePolicy:
       AutoScalingRollingUpdate:
-        MinInstancesInService: '1'
+        MinInstancesInService: '0'
         MaxBatchSize: '1'
 
   NodeLaunchConfig:
@@ -168,6 +168,8 @@ Resources:
             set -o xtrace
             yum update -y
             yum install amazon-efs-utils -y
+            curl https://raw.githubusercontent.com/jupytercalpoly/k8s-eks-deploy/master/images.txt > images.txt
+            while read line; do docker pull $line &> /dev/null; done < images.txt
             /etc/eks/bootstrap.sh ${ClusterName} ${BootstrapArguments}
             /opt/aws/bin/cfn-signal --exit-code $? \
                      --stack  ${AWS::StackName} \
