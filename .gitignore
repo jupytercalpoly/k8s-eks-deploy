@@ -107,3 +107,7 @@ venv.bak/
 service-eks
 aws-auth-cm.yaml
 efs-provisioner.yaml
+
+# macOS stuff
+.DS_STORE
+tmp
