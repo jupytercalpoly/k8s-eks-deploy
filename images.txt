@@ -1,7 +1,7 @@
 jupyter/minimal-notebook:137a295ff71b
 calpolydatascience/datascience-notebook:0.2
 calpolydatascience/stat350-notebook:d7da0bf
-calpolydatascience/data301-notebook:0.4
+calpolydatascience/data301-notebook:0.6
 jupyter/datascience-notebook:9f9e5ca8fe5a
 calpolydatascience/datascience-notebook:nbzip2
 calpolydatascience/rstudio-notebook:3.5
